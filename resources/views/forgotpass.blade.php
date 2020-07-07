@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<!-- Mirrored from www.urbanui.com/justdo/template/demo/horizontal-default-light/pages/samples/login.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 26 Mar 2020 01:31:01 GMT -->
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Quên mật khẩu</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="{{asset('vendors/ti-icons/css/themify-icons.css')}}">
+  <link rel="stylesheet" href="{{asset('vendors/css/vendor.bundle.base.css')}}">
+  <!-- endinject -->
+  <!-- Plugin css for this page -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="{{asset('css/horizontal-layout-light/style.css')}}">
+  <!-- endinject -->
+  <link rel="shortcut icon" href="{{asset('images/favicon.png')}}">
+</head>
+
+<body>
+  <div class="container-scroller">
+    <div class="container-fluid page-body-wrapper full-page-wrapper">
+      <div class="main-panel">
+        <div class="content-wrapper d-flex align-items-center auth px-0">
+          <div class="row w-100 mx-0">
+            <div class="col-lg-4 mx-auto">
+              <div class="auth-form-light text-left py-5 px-4 px-sm-5">
+                <h4>Quên mật khẩu</h4>
+                <h6 class="font-weight-light">Vui lòng nhập Email để tiến hành đặt lại mật khẩu.</h6>
+                <form id="forgotPassForm" name="forgotPassForm" class="pt-3" action="{{route('forgotpass')}}" method="POST">
+                  @if(Session::has('message'))
+                  <div class="alert alert-danger">
+                    {{Session::get('message')}}
+                  </div>
+                  @endif
+                  <input type="hidden" name="_token" value="{{@csrf_token()}}">
+                  <div class="form-group">
+                    <input name="email" type="email" class="form-control form-control-lg" id="inputEmail" placeholder="Email" required autofocus value="{{old('email')}}">
+                  </div>
+                  <div class="mt-3">
+                    <button class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" type="submit">GỬI EMAIL</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- content-wrapper ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+  <!-- plugins:js -->
+  <script src="{{asset('vendors/js/vendor.bundle.base.js')}}"></script>
+  <script src="{{asset('/vendors/jquery-validation/jquery.validate.min.js')}}"></script>
+  <!-- endinject -->
+  <!-- Plugin js for this page -->
+  <!-- End plugin js for this page -->
+  <!-- inject:js -->
+  <script src="{{asset('js/off-canvas.js')}}"></script>
+  <script src="{{asset('js/hoverable-collapse.js')}}"></script>
+  <script src="{{asset('js/template.js')}}"></script>
+  <script src="{{asset('js/settings.js')}}"></script>
+  <script src="{{asset('js/todolist.js')}}"></script>
+  <script src="{{asset('/js/form-validation.js')}}"></script>
+  <!-- endinject -->
+</body>
+
+
+<!-- Mirrored from www.urbanui.com/justdo/template/demo/horizontal-default-light/pages/samples/login.html by HTTrack Website Copier/3.x [XR&CO'2014], Thu, 26 Mar 2020 01:31:01 GMT -->
+
+</html>
