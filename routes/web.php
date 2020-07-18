@@ -17,7 +17,7 @@ Auth::routes(['verify' => true]);
 
 Route::get('/', function () {
     return view('index');
-});
+})->name('index');
 
 Route::get('master', 'HomeController@showMaster')->name('master');
 

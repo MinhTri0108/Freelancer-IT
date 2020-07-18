@@ -109,7 +109,7 @@ class HomeController extends Controller
     public function getLogout()
     {
         Auth::logout();
-        return redirect()->route('master');
+        return redirect()->route('index');
     }
 
     public function getRegister()
@@ -994,7 +994,7 @@ class HomeController extends Controller
             ->where('state', 'recruiting')->groupBy('projects.id')->orderBy('projects.created_at', 'desc')->paginate(10);
         foreach ($projects as $project) {
             $price_array = array_map('trim', explode('_', $project->pay_range));
-            $project->pay_range = '$' . $price_array[0] . ' - $' . $price_array[1] . ' USD';
+            $project->pay_range =  $price_array[0] . ' - ' . $price_array[1] . ' VND';
             $skills = array_map('trim', explode(',', $project->skills_required));
             $project->skills_required = Skill::select('skillname')->whereIn('id', $skills)->get();
         }
