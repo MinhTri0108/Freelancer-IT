@@ -19,7 +19,7 @@ Route::get('/', function () {
     return view('index');
 })->name('index');
 
-Route::get('master', 'HomeController@showMaster')->name('master');
+// Route::get('master', 'HomeController@showMaster')->name('master');
 
 Route::get('login', 'HomeController@getLogin')->name('login');
 Route::post('login', 'HomeController@postLogin')->name('login');
