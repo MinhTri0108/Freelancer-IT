@@ -18,7 +18,7 @@
     <!-- inject:css -->
     <link rel="stylesheet" href="{{asset('css/horizontal-layout-light/style.css')}}">
     <!-- endinject -->
-    <link rel="shortcut icon" href="{{asset('images/favicon.png')}}">
+    <link rel="shortcut icon" href="{{asset('images/icon.png')}}">
 </head>
 
 <body>

@@ -12,6 +12,20 @@
                         <button class="btn btn-primary btn-sm" id="add-price" data-toggle="modal" data-target="#addPriceModal">Thêm mới</button>
                     </div>
                 </div>
+                <div>
+                    <form method="POST" action="{{route('admin.skillmgmt')}}" id="searchForm" name="searchForm">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input type="hidden" name="_token" value="{{@csrf_token()}}">
+                                <input type="hidden" name="skill_type" value="search">
+                                <input type="text" class="form-control" placeholder="Nhập tên kỹ năng (Bỏ trống để hiện tất cả)" aria-label="Recipient's username" id="keyword" name="keyword">
+                                <div class="input-group-append">
+                                    <button class="btn btn-sm btn-primary" type="submit">Tìm kiếm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 @if(count($skills))
                 <div class="table-responsive mb-3">
                     <table class="table table-striped table-borderless">
@@ -28,7 +42,7 @@
                             <tr>
                                 <td>{{$skill->skillname}}</td>
                                 <td>{{$skill->jobs}}</td>
-                                <td class="text-center"><button class="btn btn-success btn-icon btn-rounded" data-toggle="modal" data-target="#udSkillModal" data-skillname="{{$skill->skillname}}" data-skillid="{{$skill->id}}" ><i class="ti-pencil-alt"></i></button></td>
+                                <td class="text-center"><button class="btn btn-success btn-icon btn-rounded" data-toggle="modal" data-target="#udSkillModal" data-skillname="{{$skill->skillname}}" data-skillid="{{$skill->id}}"><i class="ti-pencil-alt"></i></button></td>
                                 <td class="text-center">
                                     <form action="{{route('admin.skillmgmt')}}" method="POST">
                                         <input type="hidden" name="_token" value="{{@csrf_token()}}">
@@ -135,7 +149,7 @@
                     required: "Vui lòng nhập tên kỹ năng",
                     minlength: "Tên mức giá cần có ít nhất 1 ký tự",
                     maxlength: "Tên mức giá tối đa dài 70 ký tự"
-                },      
+                },
             },
             errorPlacement: function(label, element) {
                 label.addClass('mt-2 text-danger');

@@ -14,7 +14,7 @@
         <tr>
             <td><a href="{{route('projectdetail',$project->id)}}">{{$project->name}}</a></td>
             <td class="font-weight-bold">{{$project->bid}}</td>
-            <td>${{$project->average_bid}} USD</td>
+            <td>{{$project->average_bid}} VND</td>
             <td>
                 @if($project->close_date == 0)
                 Đã hết hạn
@@ -22,7 +22,7 @@
                 Còn {{$project->close_date}} ngày
                 @endif
             </td>
-            <td class="font-weight-medium text-warning">{{$project->state}}</td>
+            <td class="font-weight-medium text-warning">Đang tuyển dụng</td>
         </tr>
         @endforeach
     </tbody>

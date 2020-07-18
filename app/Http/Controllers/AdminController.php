@@ -3,12 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Admin;
+use App\Bidding;
 use App\Fee;
 use App\PayRange;
+use App\Project;
 use App\Skill;
+use App\TrHistory;
+use App\UploadFile;
+use App\User;
+use App\WithdrawReq;
+use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
@@ -30,7 +38,7 @@ class AdminController extends Controller
             if (Auth::guard('admin')->user()->is_changedpw == 0) {
                 return redirect()->route('admin.changepw');
             } else {
-                return redirect()->route('admin.master');
+                return redirect()->route('admin.adminmgmt');
             }
         } else
             return redirect()->route('admin.login')->with('message', 'Tên đăng nhập hoặc mật khẩu không chính xác');
@@ -39,7 +47,7 @@ class AdminController extends Controller
     public function getLogout()
     {
         Auth::guard('admin')->logout();
-        return redirect()->route('admin.master');
+        return redirect()->route('admin.login');
     }
 
     public function getChangepw()
@@ -128,6 +136,9 @@ class AdminController extends Controller
             $admin->password = Hash::make("12345678");
             $admin->is_changedpw = 0;
             $admin->save();
+            if (Auth::guard('admin')->user()->id === $req->admin_id) {
+                Auth::guard('admin')->logout();
+            }
             return redirect()->route('admin.adminmgmt');
         }
         if ($req->admin_type == "update") {
@@ -163,6 +174,101 @@ class AdminController extends Controller
                 $admins = Admin::paginate(10);
             }
             return view('admin.adminmgmt', compact('admins'));
+        }
+    }
+
+    public function getUsermgmt()
+    {
+        $users = User::leftJoin('projects', function ($join) {
+            $join->on('users.id', '=', 'projects.user_id')->orOn('users.id', '=', 'projects.freelancer_id');
+        })
+            ->selectRaw('users .*, sum(if(projects.user_id = users.id,1,0)) as projects_e, sum(if(projects.freelancer_id = users.id,1,0)) as projects_f')
+            ->groupBy('users.id')
+            ->paginate(10);
+        return view('admin.usermgmt', compact('users'));
+    }
+
+    public function postUsermgmt(Request $req)
+    {
+        if ($req->action == "delete") {
+            User::where('id', $req->user_id)->delete();
+            return redirect()->route('admin.usermgmt');
+        }
+
+        if ($req->action == "search") {
+            if (!is_null($req->keyword)) {
+                $users = User::leftJoin('projects', function ($join) {
+                    $join->on('users.id', '=', 'projects.user_id')->orOn('users.id', '=', 'projects.freelancer_id');
+                })
+                    ->selectRaw('users .*, sum(if(projects.user_id = users.id,1,0)) as projects_e, sum(if(projects.freelancer_id = users.id,1,0)) as projects_f')
+                    ->where('first_name', 'like', '%' . $req->keyword . '%')->orwhere('last_name', 'like', '%' . $req->keyword . '%')->orwhere('username', 'like', '%' . $req->keyword . '%')
+                    ->groupBy('users.id')
+                    ->paginate(10);
+            } else {
+                $users = User::leftJoin('projects', function ($join) {
+                    $join->on('users.id', '=', 'projects.user_id')->orOn('users.id', '=', 'projects.freelancer_id');
+                })
+                    ->selectRaw('users .*, sum(if(projects.user_id = users.id,1,0)) as projects_e, sum(if(projects.freelancer_id = users.id,1,0)) as projects_f')
+                    ->groupBy('users.id')
+                    ->paginate(10);
+            }
+            return view('admin.usermgmt', compact('users'));
+        }
+    }
+
+    public function getProjectmgmt()
+    {
+        $projects = Project::join('users', 'projects.user_id', 'users.id')
+            ->selectRaw('projects .*, username')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+        foreach ($projects as $project) {
+            $price_array = array_map('trim', explode('_', $project->pay_range));
+            if ($price_array[1] == '0') {
+                $project->pay_range = $price_array[0] . '+ VND';
+            } else {
+                $project->pay_range = $price_array[0] . ' - ' . $price_array[1] . ' VND';
+            }
+        }
+        return view('admin.projectmgmt', compact('projects'));
+    }
+
+    public function postProjectmgmt(Request $req)
+    {
+        if ($req->action == "delete") {
+            $project = Project::where('id', $req->project_id)->first();
+            $skills_list = explode(',', $project->skills_required);
+            $deleted = Project::where('id', $req->project_id)->delete();
+            if ($deleted) {
+                foreach ($skills_list as $skill) {
+                    Skill::where('id', $skill)->decrement('jobs', 1);
+                }
+                Bidding::where('project_id', $req->project_id)->delete();
+                if (!is_null($project->file_uploaded)) {
+                    $project->file_uploaded = json_decode($project->file_uploaded);
+                    $path = $project->file_uploaded->path;
+                    if (File::exists($path)) {
+                        File::delete($path);
+                    }
+                }
+            }
+            return redirect()->route('admin.projectmgmt');
+        }
+
+        if ($req->action == "search") {
+            if (!is_null($req->keyword)) {
+                $projects = Project::join('users', 'projects.user_id', 'users.id')
+                    ->selectRaw('projects .*, username')
+                    ->where('name', 'like', '%' . $req->keyword . '%')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
+            } else {
+                $projects = Project::join('users', 'projects.user_id', 'users.id')
+                    ->selectRaw('projects .*, username')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
+            }
+            return view('admin.projectmgmt', compact('projects'));
         }
     }
 
@@ -224,6 +330,17 @@ class AdminController extends Controller
                 return redirect()->view('admin.pricemgmt')->with();
             }
         }
+
+        if ($req->price_type == "search") {
+            if (!is_null($req->keyword)) {
+                $prices = PayRange::where('name', 'like', '%' . $req->keyword . '%')
+                    ->orderBy('from', 'asc')
+                    ->paginate(10);
+            } else {
+                $prices = PayRange::orderBy('from', 'asc')->paginate(10);
+            }
+            return view('admin.pricemgmt', compact('prices'));
+        }
     }
 
     public function getSkillmgmt()
@@ -276,6 +393,17 @@ class AdminController extends Controller
                 return redirect()->view('admin.skillmgmt')->with();
             }
         }
+
+        if ($req->skill_type == "search") {
+            if (!is_null($req->keyword)) {
+                $skills = Skill::where('skillname', 'like', '%' . $req->keyword . '%')
+                    ->orderBy('skillname', 'asc')
+                    ->paginate(10);
+            } else {
+                $skills = Skill::orderBy('skillname', 'asc')->paginate(10);
+            }
+            return view('admin.skillmgmt', compact('skills'));
+        }
     }
 
     public function getFeemgmt()
@@ -311,6 +439,57 @@ class AdminController extends Controller
             return redirect()->route('admin.feemgmt');
         } catch (Exception $e) {
             return redirect()->view('admin.feemgmt')->with();
+        }
+    }
+
+    public function getTxnmgmt()
+    {
+        $withdraw_req = WithdrawReq::leftJoin('users', 'withdraw_req.user_id', 'users.id')->selectRaw('withdraw_req .*, username, balances')->orderBy('approved_at', 'asc')->orderBy('created_at', 'desc')->paginate(10);
+        if (!is_null($withdraw_req)) {
+            foreach ($withdraw_req as $w_req) {
+                $w_req->created_at = Carbon::createFromTimestamp($w_req->created_at)->format('d-m-Y H:i:s');
+                $w_req->amount = round($w_req->amount, 2);
+                $w_req->balances = round($w_req->balances, 2);
+            }
+        }
+        return view('admin.txnmgmt', compact('withdraw_req'));
+    }
+
+    public function postTxnmgmt(Request $req)
+    {
+        if ($req->action == "approve") {
+            $withdraw_req = WithdrawReq::where('id', $req->withdraw_id)->first();
+            $now = new DateTime();
+            $currenttime = $now->getTimestamp();
+            $user = User::where('id', $withdraw_req->user_id)->decrement('balances', $withdraw_req->amount);
+            $data = [
+                ['of_user' => $withdraw_req->user_id, 'type' => "withdraw", 'amount' => $withdraw_req->amount, 'is_in' => 0, 'description' => 'Rút ' . $withdraw_req->amount . ' VND khỏi tài khoản', 'created_at' => $currenttime],
+            ];
+            TrHistory::insert($data);
+            $withdraw_req->approved_at = $currenttime;
+            $withdraw_req->updated_at = $currenttime;
+            $withdraw_req->save();
+            return redirect()->route('admin.txnmgmt');
+        }
+
+        if ($req->action == "search") {
+            if (!is_null($req->keyword)) {
+                $withdraw_req = WithdrawReq::leftJoin('users', 'withdraw_req.user_id', 'users.id')
+                    ->selectRaw('withdraw_req .*, username, balances')
+                    ->where('username', 'like', '%' . $req->keyword . '%')
+                    ->orwhere('withdraw_req.user_id', 'like', '%' . $req->keyword . '%')
+                    ->orderBy('approved_at', 'asc')->orderBy('created_at', 'desc')->paginate(10);
+            } else {
+                $withdraw_req = WithdrawReq::leftJoin('users', 'withdraw_req.user_id', 'users.id')->selectRaw('withdraw_req .*, username, balances')->orderBy('approved_at', 'asc')->orderBy('created_at', 'desc')->paginate(10);
+            }
+            if (!is_null($withdraw_req)) {
+                foreach ($withdraw_req as $w_req) {
+                    $w_req->created_at = Carbon::createFromTimestamp($w_req->created_at)->format('d-m-Y H:i:s');
+                    $w_req->amount = round($w_req->amount, 2);
+                    $w_req->balances = round($w_req->balances, 2);
+                }
+            }
+            return view('admin.txnmgmt', compact('withdraw_req'));
         }
     }
 }

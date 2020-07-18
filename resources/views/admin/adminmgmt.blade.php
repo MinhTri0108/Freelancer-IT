@@ -80,7 +80,7 @@
                 <div class="stretch-card">
                     <div class="card bg-light">
                         <div class="card-body">
-                            <h4 class="font-weight-bold pt-2 text-center">Chưa có dự án nào</h4>
+                            <h4 class="font-weight-bold pt-2 text-center">Chưa có quản trị viên nào</h4>
                         </div>
                     </div>
                 </div>

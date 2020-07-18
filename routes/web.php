@@ -11,6 +11,9 @@
 |
 */
 
+use Illuminate\Support\Facades\Auth;
+
+Auth::routes(['verify' => true]);
 
 Route::get('/', function () {
     return view('index');
@@ -88,6 +91,14 @@ Route::prefix('search')->group(function () {
     Route::post('project', 'HomeController@postSearchProject')->name('searchp');
 });
 
+Route::post('rating/{id}', 'HomeController@postRating')->name('rating');
+
+Route::post('deposit', 'HomeController@postDeposit')->name('deposit');
+
+Route::get('udbalances/{user_id}/{amount}', 'HomeController@updateUserBalances')->name('udbalances');
+
+Route::post('withdraw', 'HomeController@sendWithdrawRequest')->name('withdraw');
+
 Route::get('checkproject/{id}', 'HomeController@checkCompleteProject')->name('checkproject');
 
 Route::get('testemail', 'HomeController@sendEmail')->name('testmail');
@@ -96,6 +107,8 @@ Route::get('testemail', 'HomeController@sendEmail')->name('testmail');
 
 Route::get('/home', 'HomeController@index')->name('home');
 
+
+//Admin route
 Route::prefix('admin')->group(function () {
     Route::get('master', function () {
         return view('admin.master');
@@ -111,12 +124,21 @@ Route::prefix('admin')->group(function () {
     Route::get('adminmgmt', 'AdminController@getAdminmgmt')->name('admin.adminmgmt')->middleware('checkadminlogin', 'checkchangepw');
     Route::post('adminmgmt', 'AdminController@postAdminmgmt')->name('admin.adminmgmt')->middleware('checkadminlogin', 'checkchangepw');
 
+    Route::get('usermgmt', 'AdminController@getUsermgmt')->name('admin.usermgmt')->middleware('checkadminlogin', 'checkchangepw');
+    Route::post('usermgmt', 'AdminController@postUsermgmt')->name('admin.usermgmt')->middleware('checkadminlogin', 'checkchangepw');
+
+    Route::get('projectmgmt', 'AdminController@getProjectmgmt')->name('admin.projectmgmt')->middleware('checkadminlogin', 'checkchangepw');
+    Route::post('projectmgmt', 'AdminController@postProjectmgmt')->name('admin.projectmgmt')->middleware('checkadminlogin', 'checkchangepw');
+
     Route::get('pricemgmt', 'AdminController@getPricemgmt')->name('admin.pricemgmt')->middleware('checkadminlogin', 'checkchangepw');
     Route::post('pricemgmt', 'AdminController@postPricemgmt')->name('admin.pricemgmt')->middleware('checkadminlogin', 'checkchangepw');
 
-    Route::get('skillmgmt', 'AdminController@getSkillmgmt')->name('admin.skillmgmt');
-    Route::post('skillmgmt', 'AdminController@postSkillmgmt')->name('admin.skillmgmt');
+    Route::get('skillmgmt', 'AdminController@getSkillmgmt')->name('admin.skillmgmt')->middleware('checkadminlogin', 'checkchangepw');
+    Route::post('skillmgmt', 'AdminController@postSkillmgmt')->name('admin.skillmgmt')->middleware('checkadminlogin', 'checkchangepw');
 
     Route::get('feemgmt', 'AdminController@getFeemgmt')->name('admin.feemgmt')->middleware('checkadminlogin', 'checkchangepw');
     Route::post('feemgmt', 'AdminController@postFeemgmt')->name('admin.feemgmt')->middleware('checkadminlogin', 'checkchangepw');
+
+    Route::get('txnmgmt', 'AdminController@getTxnmgmt')->name('admin.txnmgmt')->middleware('checkadminlogin', 'checkchangepw');
+    Route::post('txnmgmt', 'AdminController@postTxnmgmt')->name('admin.txnmgmt')->middleware('checkadminlogin', 'checkchangepw');
 });

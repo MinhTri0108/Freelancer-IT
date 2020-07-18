@@ -14,7 +14,7 @@
         <tr>
             <td><a href="{{route('projectdetail',$project->id)}}">{{$project->name}}</a></td>
             <td><a href="{{route('profile',$project->user_id)}}">{{$project->username}}</a></td>
-            <td>${{$project->bid_amount}} USD</td>
+            <td>{{$project->bid_amount}} VND</td>
             <td>
                 @if($project->deadline == 0)
                 Đã hết hạn
@@ -22,13 +22,13 @@
                 Còn {{$project->deadline}} ngày
                 @endif
             </td>
-            <td class="font-weight-medium text-success">{{$project->state}}</td>
+            <td class="font-weight-medium text-success">Đang tiến hành</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 <div class="mt-4">
-{!! $projects_f->render() !!}
+    {!! $projects_f->render() !!}
 </div>
 @else
 <div class="stretch-card">

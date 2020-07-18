@@ -2,6 +2,9 @@
 @section('head-css')
 <link rel="stylesheet" href="{{asset('/vendors/select2/select2.min.css')}}">
 <link rel="stylesheet" href="{{asset('/vendors/select2-bootstrap-theme/select2-bootstrap.min.css')}}">
+<link rel="stylesheet" href="{{asset('/vendors/font-awesome/css/font-awesome.min.css')}}">
+<link rel="stylesheet" href="{{asset('/vendors/jquery-bar-rating/fontawesome-stars-o.css')}}">
+<link rel="stylesheet" href="{{asset('/vendors/jquery-bar-rating/fontawesome-stars.css')}}">
 @endsection
 @section('content-wrapper')
 <div class="row">
@@ -30,9 +33,26 @@
                         <p>Hãy chia sẽ công việc hiện tại của bạn</p>
                         @endif
                         @else
-                        <p>Công việc hiện tại: {{$user->current_job}}</p>
+                        <p><b>Công việc hiện tại:</b> {{$user->current_job}}</p>
                         @endif
-                        <p>Email: <b>{{$user->email}}</b></p>
+                        <p><b>Email:</b> {{$user->email}}</p>
+                        @if(is_null($rating))
+                        <p><b>Điểm đánh giá trung bình:</b> 0 (0 lượt đánh giá)</p>
+                        @else
+                        <p><b>Điểm đánh giá trung bình:</b> {{round($rating->avg_point,2)}} ({{$rating->rated_count}} lượt đánh giá)</p>
+                        <select id="rating-points">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                        @endif
                     </div>
                 </div>
                 @if(Auth::user()->id == $user->id)
@@ -63,7 +83,7 @@
                                         <label>Hãy chọn hình ảnh</label>
                                         <input type="file" name="avatar" class="file-upload-default" id="avatar" accept="image/*" required>
                                         <div class="input-group col-xs-12">
-                                            <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Image" required>
+                                            <input type="text" class="form-control file-upload-info" disabled placeholder="Đăng hình" required>
                                             <span class="input-group-append">
                                                 <button class="btn btn-primary" type="button" id="file-upload-browse">Chọn hình</button>
                                             </span>
@@ -569,6 +589,7 @@
 </div>
 @endsection
 @section('foot-script')
+<script src="{{asset('/vendors/jquery-bar-rating/jquery.barrating.min.js')}}"></script>
 <script src="{{asset('/js/file-upload.js')}}"></script>
 <script src="{{asset('/vendors/select2/select2.min.js')}}"></script>
 <script src="{{asset('/js/select2.js')}}"></script>
@@ -735,4 +756,15 @@
         });
     });
 </script>
+@if(!is_null($rating))
+<script>
+    $(function() {
+        $('#rating-points').barrating({
+            theme: 'fontawesome-stars-o',
+            initialRating: '{{$rating->avg_point}}',
+            readonly: 'true'
+        });
+    });
+</script>
+@endif
 @endsection

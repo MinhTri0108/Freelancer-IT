@@ -11,19 +11,29 @@ use App\Project;
 use App\User;
 use App\PayRange;
 use App\Qualification;
+use App\Rating;
 use App\ResetPassword;
 use App\Skill;
 use App\TrHistory;
 use App\UploadFile;
+use App\WithdrawReq;
+use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Request as IlluminateRequest;
 use Illuminate\Support\Str;
+use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
+use App\PayPalClient;
+use PayPalCheckoutSdk\Orders\OrdersAuthorizeRequest;
+use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
 use stdClass;
 
 class HomeController extends Controller
@@ -50,8 +60,6 @@ class HomeController extends Controller
 
     public function sendEmail($data, $to, $subject)
     {
-        // $data = array('info' => $content);
-        // $data = $content;
         Mail::send('mail', $data, function ($message) use ($to, $subject) {
             $message->from(env('MAIL_FROM_ADDRESS', ''), 'FreelancerIT.com');
             $message->to($to->email, $to->name)->subject($subject);
@@ -67,8 +75,7 @@ class HomeController extends Controller
     {
         switch ($req->emailType) {
             case 'resetpw':
-                $this->postForgotPass($req);
-                break;
+                return $this->postForgotPass($req);
 
             default:
                 # code...
@@ -170,7 +177,7 @@ class HomeController extends Controller
             $to->name = $hasEmail->last_name . ' ' . $hasEmail->first_name;
 
             $this->sendEmail($data, $to, $title);
-            return redirect()->route('resendemail', ['email' => $req->email, 'emailType' => 'resetpw']);
+            return redirect()->route('resendemail')->with('email', $req->email)->with('emailType', 'resetpw');
         } else {
             // echo 'Email không có trong hệ thống, vui lòng kiểm tra lại';
             return redirect()->route('forgotpass')->with('message', 'Email không có trong hệ thống, vui lòng kiểm tra lại');
@@ -192,7 +199,7 @@ class HomeController extends Controller
         $user = User::where('email', $req->email)->first();
         $user->password = Hash::make($req->password);
         $user->save();
-        return view('login');
+        return redirect()->view('login');
     }
 
     public function getProfile($id)
@@ -209,13 +216,14 @@ class HomeController extends Controller
         $edus = Education::where('user_id', $id)->orderBy('created_at', 'desc')->get();
         $exps = Experience::where('user_id', $id)->orderBy('created_at', 'desc')->get();
         $qualifes = Qualification::where('user_id', $id)->orderBy('created_at', 'desc')->get();
+        $rating = Rating::selectRaw('count(*) as rated_count, avg(points) as avg_point, rating_user')->where('rating_user', '=', $id)->groupBy('rating_user')->first();
         foreach ($exps as $exp) {
             $stat_exp = array_map('trim', explode('-', $exp->start_at));
             $end_exp = array_map('trim', explode('-', $exp->end_at));
             $exp->start_at = $stat_exp;
             $exp->end_at = $end_exp;
         }
-        return view('profile', compact('user', 'skills_list', 'skills_arr', 'edus', 'exps', 'mypj_posted', 'mypj_completed', 'mypj_inprogress', 'parpj_completed', 'parpj_inprogress', 'qualifes'));
+        return view('profile', compact('user', 'skills_list', 'skills_arr', 'edus', 'exps', 'mypj_posted', 'mypj_completed', 'mypj_inprogress', 'parpj_completed', 'parpj_inprogress', 'qualifes', 'rating'));
     }
 
     public function updateProfile(Request $req, $id)
@@ -515,13 +523,17 @@ class HomeController extends Controller
     {
         if (Auth::check()) {
             $skills_list = Skill::all();
-            $fixed_prices = PayRange::where('is_per_hour', '=', 0)->orderBy('from', 'asc')->get();
+            $fixed_prices = PayRange::orderBy('from', 'asc')->get();
             return view('postproject', compact('fixed_prices', 'skills_list'));
         }
     }
 
     public function postProject(Request $req)
     {
+        $req->validate([
+            'fileupload' => 'max:10240'
+        ]);
+
         $now = new DateTime();
         $currenttime = $now->getTimestamp();
         $skills_required = implode(',', $req->skills);
@@ -531,8 +543,6 @@ class HomeController extends Controller
         $project->description = $req->description;
         $project->skills_required = $skills_required;
         if (!is_null($req->skills)) {
-            // $project->skills_required = trim($req->skills_required);
-            // $tags_array = array_map('trim', explode(',', $req->skills_required));
             foreach ($req->skills as $skill) {
                 if ($skill != null) {
                     Skill::where('id', $skill)->increment('jobs', 1);
@@ -549,6 +559,24 @@ class HomeController extends Controller
         $project->created_at = $currenttime;
         $project->updated_at = $currenttime;
         $project->bid_end_at = $currenttime + (7 * 24 * 60 * 60);
+
+        $input = 'fileupload';
+
+        if ($req->hasFile($input)) {
+            $upload_path = 'documents';
+            $originalFileName = $req->file($input)->getClientOriginalName();
+            if (trim(pathinfo($originalFileName, PATHINFO_FILENAME)) !== '') {
+                $upload = new UploadFile();
+                $filename = $upload->uploadFile($req, $input, $upload_path);
+                if ($filename != null) {
+                    $new_path = 'documents/' . $filename;
+                    $file_arr = array('name' => $originalFileName, 'path' => $new_path);
+                    $file_json = json_encode($file_arr);
+                    $project->file_uploaded = $file_json;
+                }
+            }
+        }
+
         $project->save();
         $toid = $project->user_id;
         $data = ['type' => 'newproject', 'project_name' => $project->name, 'project_id' => $project->id];
@@ -568,17 +596,21 @@ class HomeController extends Controller
             ['user_id', '=', Auth::user()->id]
         ])->count();
         $fee = Fee::first();
-        $project = Project::leftJoin('bidding', 'projects.id', 'project_id')
-            ->selectRaw('projects.id, projects.user_id, name, description, pay_range, skills_required, ifnull(round(avg(bid_amount),2),0) as average_bid, count(bidding.user_id) as bid, state, freelancer_id, bid_end_at, ended_at')
+        $rating = Rating::where([['p_id', '=', $id], ['rating_user', '=', Auth::user()->id]])->first();
+        $project = Project::leftJoin('bidding', 'projects.id', 'project_id')->leftJoin('users', 'projects.user_id', 'users.id')
+            ->selectRaw('projects.id, projects.user_id, username, name, description, pay_range, skills_required, ifnull(round(avg(bid_amount),2),0) as average_bid, count(bidding.user_id) as bid, state, freelancer_id, bid_end_at, ended_at, file_uploaded')
             ->where('projects.id', $id)->groupBy('projects.id')->first();
         $price_array = array_map('trim', explode('_', $project->pay_range));
         if ($price_array[1] == '0') {
-            $project->pay_range = '$' . $price_array[0] . '+ USD';
+            $project->pay_range = $price_array[0] . '+ VND';
         } else {
-            $project->pay_range = '$' . $price_array[0] . ' - ' . $price_array[1] . ' USD';
+            $project->pay_range = $price_array[0] . ' - ' . $price_array[1] . ' VND';
         }
         $skills = array_map('trim', explode(',', $project->skills_required));
         $project->skills_required = Skill::select('skillname')->whereIn('id', $skills)->get();
+        if (!is_null($project->file_uploaded)) {
+            $project->file_uploaded = json_decode($project->file_uploaded);
+        }
         $avg_price = collect($price_array)->avg();
         if (Auth::user()->id == $project->user_id) {
             if (is_null($project->freelancer_id)) {
@@ -595,7 +627,7 @@ class HomeController extends Controller
                     $project->ended_at = $deadline;
                 }
                 $biddings = Bidding::join('users', 'user_id', 'users.id')
-                    ->select('username', 'proposal', 'bid_amount', 'bidding.id', 'milestones', 'avatar', 'email')
+                    ->select('username', 'proposal', 'bid_amount', 'bidding.id', 'milestones', 'avatar', 'email', 'user_id')
                     ->where([
                         ['project_id', '=', $id],
                         ['user_id', '=', $project->freelancer_id]
@@ -603,7 +635,7 @@ class HomeController extends Controller
                 $milestones = json_decode($biddings->milestones);
                 $biddings->milestones = $milestones;
             }
-            return view('projectdetail', compact('project', 'price_array', 'biddings', 'fee'));
+            return view('projectdetail', compact('project', 'price_array', 'biddings', 'fee', 'rating'));
         } else {
             if ($had_bidded == 0) {
                 $now = new DateTime();
@@ -611,7 +643,7 @@ class HomeController extends Controller
                 $is_closed = false;
                 if ((($project->bid_end_at - $currenttime) / 86400) < 0)
                     $is_closed = true;
-                return view('projectdetail', compact('project', 'avg_price', 'price_array', 'had_bidded', 'is_closed', 'fee'));
+                return view('projectdetail', compact('project', 'avg_price', 'price_array', 'had_bidded', 'is_closed', 'fee', 'rating'));
             } else {
                 $now = new DateTime();
                 $currenttime = $now->getTimestamp();
@@ -622,20 +654,21 @@ class HomeController extends Controller
                     $project->ended_at = $deadline;
                 }
                 $biddings = Bidding::join('users', 'user_id', 'users.id')
-                    ->select('username', 'proposal', 'bid_amount', 'bidding.id', 'milestones', 'period', 'avatar', 'email')
+                    ->select('username', 'proposal', 'bid_amount', 'bidding.id', 'milestones', 'period', 'avatar', 'email', 'user_id')
                     ->where([
                         ['project_id', '=', $id],
                         ['user_id', '=', Auth::user()->id]
                     ])->first();
                 $milestones = json_decode($biddings->milestones);
                 $biddings->milestones = $milestones;
-                return view('projectdetail', compact('project', 'avg_price', 'price_array', 'had_bidded', 'biddings', 'fee'));
+                return view('projectdetail', compact('project', 'avg_price', 'price_array', 'had_bidded', 'biddings', 'fee', 'rating'));
             }
         }
     }
 
     public function deleteProject($id)
     {
+        $project = Project::where('id', $id)->first();
         $skills_list = explode(',', Project::where('id', $id)->value('skills_required'));
         $del_project = Project::where('id', $id)->delete();
         if ($del_project) {
@@ -643,6 +676,13 @@ class HomeController extends Controller
                 Skill::where('id', $skill)->decrement('jobs', 1);
             }
             Bidding::where('project_id', $id)->delete();
+            if (!is_null($project->file_uploaded)) {
+                $project->file_uploaded = json_decode($project->file_uploaded);
+                $path = $project->file_uploaded->path;
+                if (File::exists($path)) {
+                    File::delete($path);
+                }
+            }
         }
         return redirect()->route('daskboard');
     }
@@ -1053,25 +1093,124 @@ class HomeController extends Controller
     {
         if (Auth::check()) {
             $user_id = Auth::user()->id;
-            $history = TrHistory::where('of_user', $user_id)->paginate(10);
+            $history = TrHistory::where('of_user', $user_id)->orderBy('created_at', 'desc')->paginate(10);
+            $withdraw_req = WithdrawReq::where('user_id', $user_id)->orderBy('created_at', 'desc')->paginate(10);
+            foreach ($withdraw_req as $w_req) {
+                $w_req->created_at = Carbon::createFromTimestamp($w_req->created_at)->format('d-m-Y H:i:s');
+                $w_req->amount = round($w_req->amount, 2);
+            }
             if ($req->ajax()) {
                 switch ($req->type_t) {
                     case "in":
-                        $history = TrHistory::where([['of_user', $user_id], ['is_in', 1]])->paginate(10);
+                        $history = TrHistory::where([['of_user', $user_id], ['is_in', 1]])->orderBy('created_at', 'desc')->paginate(10);
                         return view('trhistory', compact('history'));
                         break;
 
                     case "out":
-                        $history = TrHistory::where([['of_user', $user_id], ['is_in', 0]])->paginate(10);
+                        $history = TrHistory::where([['of_user', $user_id], ['is_in', 0]])->orderBy('created_at', 'desc')->paginate(10);
                         return view('trhistory', compact('history'));
                         break;
 
                     default:
-                        $history = TrHistory::where('of_user', $user_id)->paginate(10);
+                        $history = TrHistory::where('of_user', $user_id)->orderBy('created_at', 'desc')->paginate(10);
                         return view('trhistory', compact('history'));
                 }
             }
-            return view('finace', compact('history'));
+            return view('finace', compact('history', 'withdraw_req'));
+        }
+    }
+
+    public function postRating(Request $req, $id)
+    {
+        $rating = new Rating();
+        $rating->p_id = $id;
+        $rating->rating_user = $req->rating_user;
+        $rating->rated_user = $req->rated_user;
+        $rating->points = $req->rating;
+
+        $rating->save();
+
+        return redirect()->route('projectdetail', $id);
+    }
+
+    public function postDeposit(Request $req)
+    {
+        if (Auth::check()) {
+            $req->validate([
+                'd_money' => 'required'
+            ]);
+
+            $depositReq = new OrdersCreateRequest();
+            $depositReq->prefer('return=representation');
+            $depositReq->body = [
+                "intent" => "CAPTURE",
+                "purchase_units" => [[
+                    "reference_id" => "test_ref_id1",
+                    "amount" => [
+                        "value" => $req->d_money,
+                        "currency_code" => "USD"
+                    ]
+                ]],
+                "application_context" => [
+                    "cancel_url" => route('daskboard'),
+                    "return_url" => route('udbalances', ['user_id' => Auth::user()->id, 'amount' => $req->d_money])
+                ]
+            ];
+            try {
+                // Call API with your client and get a response for your call
+                $client = PayPalClient::client();
+                $response = $client->execute($depositReq);
+
+                // If call returns body in response, you can get the deserialized version from the result attribute of the response
+                return redirect($response->result->links[1]->href);
+            } catch (HttpException $ex) {
+                echo $ex->statusCode;
+                print_r($ex->getMessage());
+            }
+        }
+    }
+
+    public function updateUserBalances($user_id, $amount)
+    {
+        if (Auth::check() && Auth::user()->id == $user_id) {
+            $now = new DateTime();
+            $currenttime = $now->getTimestamp();
+            $user = User::where('id', $user_id)->increment('balances', $amount);
+            $data = [
+                ['of_user' => $user_id, 'type' => "deposit", 'amount' => $amount, 'is_in' => 1, 'description' => 'Nạp ' . $amount . ' VND vào tài khoản', 'created_at' => $currenttime],
+            ];
+            TrHistory::insert($data);
+
+            return redirect('daskboard');
+        }
+    }
+
+    public function sendWithdrawRequest(Request $req)
+    {
+        if (Auth::check()) {
+            $req->validate([
+                'w_money' => 'required|min:3',
+                'w_email' => 'required|email',
+                'password' => 'required|min:8',
+            ]);
+            // try {
+            if (Hash::check($req->password, Auth::user()->password)) {
+                $now = new DateTime();
+                $currenttime = $now->getTimestamp();
+                $withdraw_req = new WithdrawReq();
+                $withdraw_req->user_id = Auth::user()->id;
+                $withdraw_req->paypal_email = $req->w_email;
+                $withdraw_req->amount = $req->w_money;
+                $withdraw_req->created_at = $currenttime;
+                $withdraw_req->updated_at = $currenttime;
+                $withdraw_req->save();
+                return redirect()->route('finace');
+            } else {
+                return redirect()->route('finace')->with('wrong_pass', 'Mật khẩu không chính xác');
+            }
+            // } catch (Exception $e) {
+            //     return redirect()->view('account', compact('user'));
+            // }
         }
     }
 }

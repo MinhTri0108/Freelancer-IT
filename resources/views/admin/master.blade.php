@@ -3,6 +3,7 @@
 
 
 <!-- Mirrored from www.urbanui.com/justdo/template/demo/horizontal-default-light/ by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 25 Mar 2020 05:43:03 GMT -->
+
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
@@ -19,8 +20,8 @@
   <!-- inject:css -->
   <link rel="stylesheet" href="{{asset('css/horizontal-layout-light/style.css')}}">
   <!-- endinject -->
-  <link rel="shortcut icon" href="{{asset('images/favicon.png')}}" >
-  
+  <link rel="shortcut icon" href="{{asset('images/icon.png')}}">
+
 </head>
 
 <body>
@@ -30,8 +31,8 @@
       <nav class="navbar top-navbar col-lg-12 col-12 p-0">
         <div class="container">
           <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-            <a class="navbar-brand brand-logo" href="index-2.html"><img src="https://www.urbanui.com/justdo/template/images/logo-white.svg" alt="logo"/></a>
-            <a class="navbar-brand brand-logo-mini" href="index-2.html"><img src="https://www.urbanui.com/justdo/template/images/logo-mini.svg" alt="logo"/></a>
+            <a class="navbar-brand brand-logo" href="#"><img height="50" src="{{asset('images/logo/logo-resize.png')}}" alt="logo" /></a>
+            <a class="navbar-brand brand-logo-mini" href="#"><img src="{{asset('images/logo/logo-mini.png')}}" alt="logo" /></a>
           </div>
           <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
             <!-- <ul class="navbar-nav mr-lg-2">
@@ -57,9 +58,9 @@
               @else
               <li class="nav-item nav-profile dropdown">
                 <a class="nav-link" href="#" data-toggle="dropdown" id="profileDropdown" style="width: 140px;">
-                  <img src="{{asset('images/avatar/anonymous.jpg')}}" alt="profile"/>
+                  <img src="{{asset('images/avatar/anonymous.jpg')}}" alt="profile" />
                   {{Auth::guard('admin')->user()->full_name}}
-                </a>      
+                </a>
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
                   <a class="dropdown-item" href="{{route('admin.logout')}}">
                     <i class="ti-power-off text-primary"></i>
@@ -79,15 +80,33 @@
         <div class="container">
           <ul class="nav page-navigation">
             <li class="nav-item">
-              <a class="nav-link" href="{{route('daskboard')}}">
+              <a class="nav-link" href="{{route('admin.adminmgmt')}}">
                 <i class="ti-home menu-icon"></i>
-                <span class="menu-title">Dashboard</span>
+                <span class="menu-title">Quản lý QTV</span>
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{route('admin.adminmgmt')}}">
+              <a class="nav-link" href="{{route('admin.usermgmt')}}">
+                <i class="ti-user menu-icon"></i>
+                <span class="menu-title">Quản lý người dùng</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{route('admin.projectmgmt')}}">
+                <i class="ti-briefcase menu-icon"></i>
+                <span class="menu-title">Quản lý dự án</span>
+              </a>
+            </li>
+            <li class="nav-item mega-menu">
+              <a href="{{route('admin.pricemgmt')}}" class="nav-link">
+                <i class="ti-money menu-icon"></i>
+                <span class="menu-title">Quản lý giá dự án</span>
+              </a>
+            </li>
+            <li class="nav-item mega-menu">
+              <a href="{{route('admin.feemgmt')}}" class="nav-link">
                 <i class="ti-settings menu-icon"></i>
-                <span class="menu-title">Quản lý admin</span>
+                <span class="menu-title">Quản lý tiền phí</span>
               </a>
             </li>
             <li class="nav-item">
@@ -96,30 +115,12 @@
                 <span class="menu-title">Quản lý kỹ năng</span>
               </a>
             </li>
-            <li class="nav-item mega-menu">
-              <a href="{{route('admin.pricemgmt')}}" class="nav-link">
-                <i class="ti-palette menu-icon"></i>
-                <span class="menu-title">Quản lý giá dự án</span>
+            <li class="nav-item">
+              <a class="nav-link" href="{{route('admin.txnmgmt')}}">
+                <i class="ti-exchange-vertical menu-icon"></i>
+                <span class="menu-title">Quản lý giao dịch</span>
               </a>
             </li>
-            <li class="nav-item mega-menu">
-              <a href="{{route('admin.feemgmt')}}" class="nav-link">
-                <i class="ti-palette menu-icon"></i>
-                <span class="menu-title">Quản lý tiền phí</span>
-              </a>
-            </li>
-            <!-- <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="ti-bar-chart-alt menu-icon"></i>
-                <span class="menu-title">Tìm kiếm</span>
-                <i class="menu-arrow"></i></a>
-              <div class="submenu">
-                <ul class="submenu-item">
-                  <li class="nav-item"><a class="nav-link" href="{{route('searchp')}}">Dự án</a></li>
-                  <li class="nav-item"><a class="nav-link" href="{{route('searchu')}}">Người dùng</a></li>
-                </ul>
-              </div>
-            </li> -->
           </ul>
         </div>
       </nav>
@@ -129,14 +130,14 @@
     <div class="container-fluid page-body-wrapper">
       <div class="main-panel">
         <div class="content-wrapper">
-        @yield('content-wrapper')
+          @yield('content-wrapper')
         </div>
         <!-- content-wrapper ends -->
         <!-- partial:partials/_footer.html -->
         <footer class="footer">
           <div class="w-100 clearfix">
-            <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © 2018 <a href="http://www.urbanui.com/" target="_blank">Urbanui</a>. All rights reserved.</span>
-            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="ti-heart text-danger ml-1"></i></span>
+            <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © 2019 Freelancer IT. All rights reserved.</span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Made by Vo Minh Tri with <i class="ti-heart text-danger ml-1"></i></span>
           </div>
         </footer>
         <!-- partial -->
@@ -169,4 +170,5 @@
 
 
 <!-- Mirrored from www.urbanui.com/justdo/template/demo/horizontal-default-light/ by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 25 Mar 2020 05:43:26 GMT -->
+
 </html>

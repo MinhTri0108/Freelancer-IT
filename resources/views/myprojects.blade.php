@@ -23,7 +23,7 @@
                 <!-- <p class="card-title mb-0">Dự án của tôi</p> -->
                 <ul class="nav nav-pills nav-pills-primary" id="pills-tab-e" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="pills-recuriting-tab" data-toggle="pill" href="#pills-recuriting" role="tab" aria-controls="pills-recuriting" aria-selected="true">Dự án đang mở chào giá</a>
+                        <a class="nav-link active" id="pills-recuriting-tab" data-toggle="pill" href="#pills-recuriting" role="tab" aria-controls="pills-recuriting" aria-selected="true">Dự án đang tuyển dụng</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="pills-inprogress-tab" data-toggle="pill" href="#pills-inprogress" role="tab" aria-controls="pills-inprogress" aria-selected="false">Dự án đang tiến hành</a>

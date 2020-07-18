@@ -14,7 +14,7 @@
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse;">
                     <tr>
                         <td bgcolor="#248afd">
-                            <img src="{{asset('images/logo/logo-crop.png')}}" alt="Freelancer IT logo" style="display: block; margin: 0 auto;" />
+                            <img src="{{asset('images/logo/logo-resize.png')}}" alt="Freelancer IT logo" style="display: block; margin: 0 auto;" />
                         </td>
                     </tr>
                     <tr>

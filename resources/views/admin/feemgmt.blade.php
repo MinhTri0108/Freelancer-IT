@@ -13,18 +13,28 @@
                             <input type="number" name="fixed_fee" class="form-control" id="fixed_fee" placeholder="Phí cố định" required value="{{$fee->fixed_fee}}" max="{{$min_price / 2}}" min="1">
                         </div>
                         <div class="col-sm-12 col-md-6">
-                            <label for="fixed_boundary" class="col-form-label">Áp dụng phí cố định khi mức giá nhỏ hơn hoặc bằng:</label>
+                            <label for="fixed_boundary" class="col-form-label">Áp dụng phí cố định khi giá chào nhỏ hơn hoặc bằng:</label>
                             <input type="number" name="fixed_boundary" class="form-control" id="fixed_boundary" placeholder="Mức giá áp dụng" required value="{{$fee->fixed_boundary}}" min="{{$min_price}}">
                         </div>
                     </div>
                     <div class="form-group row">
                         <div class="col-sm-12 col-md-6">
-                            <label for="fee_rate" class="col-form-label">Tỉ lệ phí tham gia dự án theo phần trăm</label>
-                            <input type="number" name="fee_rate" class="form-control" id="fee_rate" placeholder="Tỉ lệ phần trăm" required value="{{$fee->fee_rate}}" min="1" max="20">
+                            <label for="fee_rate" class="col-form-label">Tỉ lệ phí tham gia dự án theo phần trăm số tiền chào giá:</label>
+                            <div class="input-group">
+                                <input type="number" name="fee_rate" class="form-control" id="fee_rate" placeholder="Tỉ lệ phần trăm" required value="{{$fee->fee_rate}}" min="1" max="20">
+                                <div class="input-group-append">
+                                    <span class="input-group-text text-dark">%</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-6">
-                            <label for="penalty_rate" class="col-form-label">Tỉ lệ phí phạt khi hoàn thành dự án quá hạn</label>
-                            <input type="number" name="penalty_rate" class="form-control" id="penalty_rate" placeholder="Tỉ lệ phần trăm" required value="{{$fee->penalty_rate}}" min="1" max="40">
+                            <label for="penalty_rate" class="col-form-label">Tỉ lệ phí phạt khi hoàn thành dự án quá hạn:</label>
+                            <div class="input-group">
+                                <input type="number" name="penalty_rate" class="form-control" id="penalty_rate" placeholder="Tỉ lệ phần trăm" required value="{{$fee->penalty_rate}}" min="1" max="40">
+                                <div class="input-group-append">
+                                    <span class="input-group-text text-dark">%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="text-right">
@@ -49,11 +59,19 @@
                 fixed_fee: {
                     required: true,
                     min: 1,
-                    max: {{$min_price / 2}},
+                    max: {
+                        {
+                            $min_price / 2
+                        }
+                    },
                 },
                 fixed_boundary: {
                     required: true,
-                    min: {{$min_price}},
+                    min: {
+                        {
+                            $min_price
+                        }
+                    },
                 },
                 fee_rate: {
                     required: true,

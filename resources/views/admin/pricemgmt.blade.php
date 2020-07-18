@@ -12,6 +12,20 @@
                         <button class="btn btn-primary btn-sm" id="add-price" data-toggle="modal" data-target="#addPriceModal">Thêm mới</button>
                     </div>
                 </div>
+                <div>
+                    <form method="POST" action="{{route('admin.pricemgmt')}}" id="searchForm" name="searchForm">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input type="hidden" name="_token" value="{{@csrf_token()}}">
+                                <input type="hidden" name="price_type" value="search">
+                                <input type="text" class="form-control" placeholder="Nhập tên mức giá (Bỏ trống để hiện tất cả)" aria-label="Recipient's username" id="keyword" name="keyword">
+                                <div class="input-group-append">
+                                    <button class="btn btn-sm btn-primary" type="submit">Tìm kiếm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 @if(count($prices) > 0)
                 <div class="table-responsive mb-3">
                     <table class="table table-striped table-borderless">
@@ -28,13 +42,13 @@
                             @foreach($prices as $price)
                             <tr>
                                 <td>{{$price->name}}</td>
-                                <td>${{$price->from}} USD</td>
+                                <td>{{$price->from}} VND</td>
                                 @if($price->to == 0)
                                 <td>Vô cùng</td>
                                 @else
-                                <td>${{$price->to}} USD</td>
+                                <td>{{$price->to}} VND</td>
                                 @endif
-                                <td class="text-center"><button class="btn btn-success btn-icon btn-rounded" data-toggle="modal" data-target="#udPriceModal" data-name="{{$price->name}}" data-from="{{$price->from}}" data-to="{{$price->to}}" data-priceid="{{$price->id}}" ><i class="ti-pencil-alt"></i></button></td>
+                                <td class="text-center"><button class="btn btn-success btn-icon btn-rounded" data-toggle="modal" data-target="#udPriceModal" data-name="{{$price->name}}" data-from="{{$price->from}}" data-to="{{$price->to}}" data-priceid="{{$price->id}}"><i class="ti-pencil-alt"></i></button></td>
                                 <td class="text-center">
                                     <form action="{{route('admin.pricemgmt')}}" method="POST">
                                         <input type="hidden" name="_token" value="{{@csrf_token()}}">
@@ -119,11 +133,11 @@
                                     <div class="form-group row">
                                         <div class="col-sm-12 col-md-6">
                                             <label for="ud_from" class="col-form-label">Khởi điểm của mức giá</label>
-                                            <input type="text" name="ud_from" class="form-control" id="ud_from" placeholder="Khởi điểm" required>
+                                            <input type="number" name="ud_from" class="form-control" id="ud_from" placeholder="Khởi điểm" required>
                                         </div>
                                         <div class="col-sm-12 col-md-6">
                                             <label for="ud_to" class="col-form-label">Giá trị tối đa của mức giá</label>
-                                            <input type="text" name="ud_to" class="form-control" id="ud_to" placeholder="Giá trị tối đa" required>
+                                            <input type="number" name="ud_to" class="form-control" id="ud_to" placeholder="Giá trị tối đa" required>
                                         </div>
                                     </div>
                                 </form>
@@ -157,7 +171,7 @@
                 },
                 to: {
                     required: true,
-                    min:0,
+                    min: 0,
                 },
                 from: {
                     required: true,
@@ -176,8 +190,8 @@
                 },
                 to: {
                     required: "Trường này không được bỏ trống",
-                    min:"Giá tối đa từ 0 trở lên, 0 có nghĩa là vô cùng",
-                },        
+                    min: "Giá tối đa từ 0 trở lên, 0 có nghĩa là vô cùng",
+                },
             },
             errorPlacement: function(label, element) {
                 label.addClass('mt-2 text-danger');
@@ -198,7 +212,7 @@
                 },
                 ud_to: {
                     required: true,
-                    min:0,
+                    min: 0,
                 },
                 ud_from: {
                     required: true,
@@ -217,8 +231,8 @@
                 },
                 ud_to: {
                     required: "Trường này không được bỏ trống",
-                    min:"Giá tối đa từ 0 trở lên, 0 có nghĩa là vô cùng",
-                }, 
+                    min: "Giá tối đa từ 0 trở lên, 0 có nghĩa là vô cùng",
+                },
             },
             errorPlacement: function(label, element) {
                 label.addClass('mt-2 text-danger');

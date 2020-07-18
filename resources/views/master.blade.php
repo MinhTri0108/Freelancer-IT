@@ -9,6 +9,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="csrf-token" content="{{ csrf_token() }}">
+  @yield('meta')
   <title>FreelancerIT</title>
   <!-- plugins:css -->
   <link rel="stylesheet" href="{{asset('/vendors/ti-icons/css/themify-icons.css')}}">
@@ -20,7 +21,7 @@
   <!-- inject:css -->
   <link rel="stylesheet" href="{{asset('css/horizontal-layout-light/style.css')}}">
   <!-- endinject -->
-  <link rel="shortcut icon" href="{{asset('images/favicon.png')}}">
+  <link rel="shortcut icon" href="{{asset('images/icon.png')}}">
 
 </head>
 
@@ -32,8 +33,8 @@
         <div class="container">
           <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
             <!-- <a class="navbar-brand brand-logo" href="index-2.html"><img src="https://www.urbanui.com/justdo/template/images/logo-white.svg" alt="logo" /></a> -->
-            <a class="navbar-brand brand-logo" href="index-2.html"><img height="50" src="{{asset('images/logo/logo-crop.png')}}" alt="logo" /></a>
-            <a class="navbar-brand brand-logo-mini" href="index-2.html"><img src="https://www.urbanui.com/justdo/template/images/logo-mini.svg" alt="logo" /></a>
+            <a class="navbar-brand brand-logo" href="#"><img height="50" src="{{asset('images/logo/logo-resize.png')}}" alt="logo" /></a>
+            <a class="navbar-brand brand-logo-mini" href="#"><img src="{{asset('images/logo/logo-mini.png')}}" alt="logo" /></a>
           </div>
           <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
             <!-- <ul class="navbar-nav mr-lg-2">
@@ -161,7 +162,7 @@
                     <img src="{{asset('images/avatar/'.Auth::user()->avatar)}}" alt="profile" class="align-self-center" />
                     <div class="align-self-center ml-2">
                       {{Auth::user()->username}}
-                      <p class="m-0">${{Auth::user()->balances}} USD</p>
+                      <p class="m-0">{{floor(Auth::user()->balances)}} VND</p>
                     </div>
 
                   </div>
@@ -200,30 +201,24 @@
             <li class="nav-item">
               <a class="nav-link" href="{{route('daskboard')}}">
                 <i class="ti-home menu-icon"></i>
-                <span class="menu-title">Dashboard</span>
+                <span class="menu-title">Tổng quan</span>
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{route('myproject')}}">
-                <i class="ti-settings menu-icon"></i>
+                <i class="ti-briefcase menu-icon"></i>
                 <span class="menu-title">Dự án của tôi</span>
               </a>
             </li>
             <li class="nav-item">
               <a href="{{route('postproject')}}" class="nav-link">
-                <i class="ti-palette menu-icon"></i>
+                <i class="ti-upload menu-icon"></i>
                 <span class="menu-title">Đăng dự án</span>
               </a>
             </li>
-            <!-- <li class="nav-item mega-menu">
-              <a href="{{route('allproject')}}" class="nav-link">
-                <i class="ti-palette menu-icon"></i>
-                <span class="menu-title">All Project</span>
-              </a>
-            </li> -->
             <li class="nav-item">
               <a href="#" class="nav-link">
-                <i class="ti-bar-chart-alt menu-icon"></i>
+                <i class="ti-search menu-icon"></i>
                 <span class="menu-title">Tìm kiếm</span>
                 <i class="menu-arrow"></i></a>
               <div class="submenu">
@@ -315,7 +310,7 @@
         <!-- partial:partials/_footer.html -->
         <footer class="footer">
           <div class="w-100 clearfix">
-            <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © 2018 <a href="http://www.urbanui.com/" target="_blank">Urbanui</a>. All rights reserved.</span>
+            <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © 2019 Freelancer IT. All rights reserved.</span>
             <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Made by Vo Minh Tri with <i class="ti-heart text-danger ml-1"></i></span>
           </div>
         </footer>

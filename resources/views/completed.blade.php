@@ -13,14 +13,14 @@
         <tr>
             <td><a href="{{route('projectdetail',$project->id)}}">{{$project->name}}</a></td>
             <td><a href="{{route('profile',$project->freelancer_id)}}">{{$project->username}}</a></td>
-            <td>${{$project->bid_amount}} USD</td>
-            <td class="font-weight-medium text-primary">{{$project->state}}</td>
+            <td>{{$project->bid_amount}} VND</td>
+            <td class="font-weight-medium text-primary">Đã hoàn thành</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 <div class="mt-4">
-{!! $projects_e->render() !!}
+    {!! $projects_e->render() !!}
 </div>
 @else
 <div class="stretch-card">

@@ -9,14 +9,14 @@
         </tr>
     </thead>
     <tbody>
-    @foreach($history as $transaction)
+        @foreach($history as $transaction)
         <tr>
             @if($transaction->is_in == 1)
             <td class="text-primary">Tiền vào</td>
             @else
             <td class="text-danger">Tiền ra</td>
             @endif
-            <td>{{$transaction->amount}} USD</td>
+            <td>{{$transaction->amount}} VND</td>
             <td>{{$transaction->description}}</td>
             <td>{{$transaction->created_at}}</td>
         </tr>
@@ -24,7 +24,7 @@
     </tbody>
 </table>
 <div class="mt-4">
-{!! $history->render() !!}
+    {!! $history->render() !!}
 </div>
 @else
 <div class="stretch-card">

@@ -1,4 +1,8 @@
 @extends('master')
+@section('meta')
+<meta name="viewport" content="width=device-width, initial-scale=1"> <!-- Ensures optimal rendering on mobile devices. -->
+<meta http-equiv="X-UA-Compatible" content="IE=edge" /> <!-- Optimal Internet Explorer compatibility -->
+@endsection
 @section('content-wrapper')
 <div class="row">
     <div class="col-md-3 grid-margin">
@@ -99,37 +103,95 @@
                     </div>
                     <div class="tab-pane fade" id="v-pills-deposit" role="tabpanel" aria-labelledby="v-pills-deposit-tab">
                         <h4 class="font-weight-bold border-bottom pb-3">Nạp tiền vào tài khoản</h4>
-                        <div class="media">
-                            <form class="w-100 forms-sample" name="password" method="POST" action="#" id="depositForm">
+                        <div class="media" style="display: block;">
+                            <p>Phương thức thanh toán</p>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="radio" class="form-check-input" name="paypalRadio" id="paypalRadio" value="paypal" checked>
+                                    PayPal
+                                </label>
+                            </div>
+                            <form class="w-100 forms-sample" name="password" method="POST" action="{{route('deposit')}}" id="depositForm">
                                 <input type="hidden" name="_token" value="{{@csrf_token()}}">
                                 <div class="form-group">
                                     <label for="d_money">Số tiền muốn nạp</label>
-                                    <input type="number" class="form-control" id="d_money" name="d_money" required>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="d_money" name="d_money" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text text-dark">VND</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="text-right">
                                     <button type="submit" class="btn btn-primary">Nạp tiền</button>
                                 </div>
+
                             </form>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="v-pills-withdraw" role="tabpanel" aria-labelledby="v-pills-withdraw-tab">
                         <h4 class="font-weight-bold border-bottom pb-3">Rút tiền từ tài khoản</h4>
-                        <div class="media">
-                            <form class="w-100 forms-sample" name="password" method="POST" action="#" id="withdrawForm">
+                        <div class="media" style="display: block;">
+                            <h5>Các yêu cầu rút tiền:</h5>
+                            <div class="mb-3">
+                                @if(count($withdraw_req)>0)
+                                <table class="table table-striped table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%;">Mã yêu cầu</th>
+                                            <th style="width: 25%;">Số tiền rút</th>
+                                            <th style="width: 25%;">Thời điểm yêu cầu</th>
+                                            <th style="width: 25%;">Tình trạng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($withdraw_req as $w_req)
+                                        <tr>
+                                            <td>{{$w_req->id}}</td>
+                                            <td>{{$w_req->amount}} VND</td>
+                                            <td>{{$w_req->created_at}}</td>
+                                            @if($w_req->approved_at === 0)
+                                            <td class="font-weight-medium text-warning">Chưa duyệt</td>
+                                            @else
+                                            <td class="font-weight-medium text-primary">Đã duyệt</td>
+                                            @endif
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                {{ $withdraw_req->links() }}
+                                @else
+                                <div class="stretch-card">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h4 class="font-weight-bold pt-2 text-center">Chưa yêu cầu rút tiền</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                            <h5>Gửi yêu cầu rút tiền:</h5>
+                            <form class="w-100 forms-sample" name="password" method="POST" action="{{route('withdraw')}}" id="withdrawForm">
                                 <input type="hidden" name="_token" value="{{@csrf_token()}}">
                                 <input type="hidden" name="pa_type" value="password">
                                 <div class="form-group">
                                     <label for="w_money">Số tiền muốn rút</label>
-                                    <input type="number" class="form-control" id="w_money" name="w_money" required minlength="8">
+                                    <input type="number" class="form-control" id="w_money" name="w_money" required minlength="3">
+                                </div>
+                                <div class="form-group">
+                                    <label for="w_money">Email người dùng đăng ký PayPal</label>
+                                    <input type="email" class="form-control" id="w_email" name="w_email" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="password">Mật khẩu của người dùng</label>
                                     <input type="password" class="form-control" id="password" name="password" required minlength="8">
                                 </div>
                                 <div class="text-right">
-                                    <button type="submit" class="btn btn-primary">Rút tiền</button>
+                                    <button type="submit" class="btn btn-primary">Gửi yêu cầu</button>
                                 </div>
                             </form>
+
+
                         </div>
                     </div>
                 </div>
@@ -139,6 +201,8 @@
 </div>
 @endsection
 @section('foot-script')
+<!-- Add the checkout buttons, set up the order and approve the order -->
+
 <script type="text/javascript">
     var type_t = "all"
     $(function() {

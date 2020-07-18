@@ -27977,6 +27977,14 @@ div.tagsinput span.tag a {
   width: 100%;
 }
 
+.index-wallpaper{
+  background-image: url('../../images/wallpaper/getting-work-done-twago.png'); 
+  background-attachment: fixed; 
+  background-size: 100% 100%;
+  background-repeat: no-repeat; 
+  min-height: calc(100vh - 135px - 14px);
+}
+
 @media (max-width: 991.98px) {
   .main-panel {
     padding-top: 60px;
@@ -28760,5 +28768,4 @@ div.tagsinput span.tag a {
     right: 0;
   }
 }
-
 /*# sourceMappingURL=../maps/horizontal-layout-light/style.css.map */

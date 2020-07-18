@@ -20,7 +20,7 @@
     <!-- inject:css -->
     <link rel="stylesheet" href="{{asset('css/horizontal-layout-light/style.css')}}">
     <!-- endinject -->
-    <link rel="shortcut icon" href="{{asset('images/favicon.png')}}">
+    <link rel="shortcut icon" href="{{asset('images/icon.png')}}">
 
 </head>
 
@@ -31,8 +31,8 @@
             <nav class="navbar top-navbar col-lg-12 col-12 p-0">
                 <div class="container">
                     <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-                        <a class="navbar-brand brand-logo" href="index-2.html"><img height="50" src="{{asset('images/logo/logo-crop.png')}}" alt="logo" /></a>
-                        <a class="navbar-brand brand-logo-mini" href="index-2.html"><img src="https://www.urbanui.com/justdo/template/images/logo-mini.svg" alt="logo" /></a>
+                        <a class="navbar-brand brand-logo" href="#"><img height="50" src="{{asset('images/logo/logo-resize.png')}}" alt="logo" /></a>
+                        <a class="navbar-brand brand-logo-mini" href="#"><img src="{{asset('images/logo/logo-mini.png')}}" alt="logo" /></a>
                     </div>
                     <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
                         <!-- <ul class="navbar-nav mr-lg-2">
@@ -118,8 +118,8 @@
                                                 <!-- <h4 class="font-weight-bold pt-2 text-center"></h4> -->
                                                 <form name="resendemail" method="POST" action="{{route('resendemail')}}" id="resendemailForm">
                                                     <input type="hidden" name="_token" value="{{@csrf_token()}}">
-                                                    <input type="hidden" name="email" class="form-control form-control-lg" id="inputEmail" required value="{{$email}}">
-                                                    <input type="hidden" name="emailType" class="form-control form-control-lg" id="inputEmailType" required value="{{$emailType}}">
+                                                    <input type="hidden" name="email" class="form-control form-control-lg" id="inputEmail" required value="{{Session::get('email')}}">
+                                                    <input type="hidden" name="emailType" class="form-control form-control-lg" id="inputEmailType" required value="{{Session::get('emailType')}}">
                                                     <p class="text-center my-3">Vui lòng kiểm tra email để tiếp tục. Nếu không nhận được email hãy <button class="btn btn-link px-0">gửi lại</button></p>
                                                 </form>
                                             </div>
