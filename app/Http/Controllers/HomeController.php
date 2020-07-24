@@ -199,7 +199,7 @@ class HomeController extends Controller
         $user = User::where('email', $req->email)->first();
         $user->password = Hash::make($req->password);
         $user->save();
-        return redirect()->view('login');
+        return redirect()->route('login');
     }
 
     public function getProfile($id)
